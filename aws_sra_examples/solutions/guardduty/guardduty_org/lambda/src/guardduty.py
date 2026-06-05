@@ -41,7 +41,7 @@ SLEEP_SECONDS = 10
 UNEXPECTED = "Unexpected!"
 MAX_RETRY = 5
 BOTO3_CONFIG = Config(retries={"max_attempts": 10, "mode": "standard"})
-CHECK_ACCT_MEMBER_RETRIES = 10
+CHECK_ACCT_MEMBER_RETRIES = 30
 
 try:
     MANAGEMENT_ACCOUNT_SESSION = boto3.Session()
