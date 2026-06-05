@@ -458,7 +458,7 @@ Resources:
       Content:
         S3Bucket: !Ref pSRAStagingS3BucketName
         S3Key: !Sub ${pSRASolutionName}/layer_code/${pSRASolutionName}-layer.zip
-      Description: Boto3 version layerto enable CloudTrail delegated admin
+      Description: Boto3 1.43.24 layer to enable CloudTrail delegated admin (refreshed 2026-06-05)
       LayerName: !Sub ${pCloudTrailLambdaFunctionName}-updated-boto3-layer
 
   rLambdaCustomResource:
