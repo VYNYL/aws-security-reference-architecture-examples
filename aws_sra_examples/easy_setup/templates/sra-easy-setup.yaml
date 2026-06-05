@@ -8,7 +8,7 @@ Description:
   repo, https://github.com/aws-samples/aws-security-reference-architecture-examples (sra-1ssgnse7p)
 Metadata:
   SRA:
-    Version: 1.0
+    Version: 1.1
     Order: 1
   AWS::CloudFormation::Interface:
     ParameterGroups:
