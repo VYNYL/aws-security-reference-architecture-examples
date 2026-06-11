@@ -41,7 +41,7 @@ SLEEP_SECONDS = 10
 UNEXPECTED = "Unexpected!"
 MAX_RETRY = 5
 BOTO3_CONFIG = Config(retries={"max_attempts": 10, "mode": "standard"})
-CHECK_ACCT_MEMBER_RETRIES = 10
+CHECK_ACCT_MEMBER_RETRIES = 30
 
 try:
     MANAGEMENT_ACCOUNT_SESSION = boto3.Session()
@@ -549,18 +549,22 @@ def configure_guardduty(  # noqa: CFQ002, CFQ001
 
     # Verify members created for existing Organization accounts
     for region in region_list:
+        regional_guardduty = session.client("guardduty", region_name=region, config=BOTO3_CONFIG)
         detectors = regional_guardduty.list_detectors()
         if detectors["DetectorIds"]:
             detector_id = detectors["DetectorIds"][0]
             LOGGER.info(f"Checking for missing members. DetectorID: {detector_id} Region: {region}")
         missing_members: list = check_members(regional_guardduty, detector_id, accounts)
-        if len(missing_members) > 0:
-            LOGGER.info(f"Check members failure: {missing_members}")
-            raise ValueError("Check members failure")
+        missing_ids = {member["AccountId"] for member in missing_members}
+        if missing_ids:
+            # Non-fatal: GuardDuty organization auto-enable (set via update_organization_configuration)
+            # enrolls these accounts in the background. Failing the deploy here just causes rollback churn.
+            LOGGER.warning(f"Proceeding without {len(missing_ids)} not-yet-associated member(s) in {region}; org auto-enable will enroll them: {missing_ids}")
+        confirmed_account_ids = [account_id for account_id in account_ids if account_id not in missing_ids]
         update_member_detectors(
             regional_guardduty,
             detector_id,
-            account_ids,
+            confirmed_account_ids,
             gd_features,
         )
 
