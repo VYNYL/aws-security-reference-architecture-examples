@@ -2171,7 +2171,7 @@ Resources:
             Value: !Ref pRepoBranch
           - Name: SRA_STAGING_S3_BUCKET_STACK_NAME
             Value: !Ref pSRAStagingS3BucketStackName
-        Image: "aws/codebuild/standard:5.0"
+        Image: "aws/codebuild/standard:7.0"
         PrivilegedMode: true
         Type: "LINUX_CONTAINER"
       ServiceRole: !GetAtt rCodeBuildRole.Arn
