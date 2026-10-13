@@ -2,7 +2,7 @@
 
 This branch is VYNYL's maintained base for deploying the AWS Security Reference Architecture
 (SRA) to **non–Control Tower** AWS Organizations. It is the upstream `aws-samples`
-SRA at commit **`f3c57b7`** plus a small set of generic bug fixes (below) that are required
+SRA at commit **`a00e4de`** (main, 2026-09-04) plus a small set of generic bug fixes (below) that are required
 for the SRA to deploy successfully against the **current AWS APIs**.
 
 > **Deploy any new org's `easy_setup` CodeBuild project from this branch.** All
@@ -13,7 +13,7 @@ First proven on the OCR org (June 2026). OCR runs the equivalent `ocr206-cloudtr
 
 ---
 
-## What's patched vs. upstream `f3c57b7`
+## What's patched vs. upstream `a00e4de`
 
 | # | File | Change | Why |
 |---|---|---|---|
@@ -23,7 +23,7 @@ First proven on the OCR org (June 2026). OCR runs the equivalent `ocr206-cloudtr
 | 4 | `solutions/cloudtrail/cloudtrail_org/layer/boto3/package.txt` | pin `boto3;1.43.24` (+ layer `Description`) | Refreshes the vendored boto3 layer for Amazon Inspector readiness (no stale-dependency findings). |
 
 All four are **org-agnostic** (no account IDs / region pins). Confirm with:
-`git diff f3c57b7 vynyl-sra-base -- aws_sra_examples/`
+`git diff a00e4de vynyl-sra-base -- aws_sra_examples/`
 
 ---
 
@@ -98,10 +98,17 @@ leave **orphans** that block retries. Before retrying, clean up **all** of them,
 
 ## Maintenance
 
-- **Base is `f3c57b7`** (pre–Control Tower 4.0), chosen because CT 4.0 (#344) restructures Config/CloudTrail/
-  S3 log buckets and is untested in non-CT mode. For non-CT orgs that's the right base.
-- **Adopting upstream updates (CT 4.0 / latest `main`) is a deliberate, tested upgrade** — not a merge
-  side-effect: rebase these fixes onto the new base, resolve the CloudTrail-template conflict, validate
-  Config/CloudTrail delivery, then repoint deployments. Don't `git merge` this branch into `main`.
+- **Base is `a00e4de`** (upstream `main` as of 2026-09-04). Previous base was `f3c57b7` (pre–CT 4.0).
+- **Adopting upstream updates is a deliberate, tested upgrade** — not a merge side-effect: rebase these
+  fixes onto the new base, run the CI gate, test-deploy on one org, validate Config/CloudTrail delivery,
+  then repoint deployments. Don't `git merge` this branch into `main`.
+- **Known gate noise:** `black --check` fails repo-wide on upstream files (newer black wants a blank line
+  after module docstrings). Pre-existing upstream drift; do not reformat upstream files in this fork.
+
+### Upstream sync history
+
+| Date | New base | What came in | Non-CT impact |
+|---|---|---|---|
+| 2026-10-13 | `a00e4de` | EventBridge Rule → **EventBridge Scheduler** (`bc58a89`; 11 solution templates get an `AWS::Scheduler::Schedule` + IAM role, new `pScheduleExpressionTimezone` param). **CT 4.0 compat** (`5b339b6`; Landing Zone API fallback, auto-discovered Config bucket, `ssm:ListTagsForResource` in easy_setup). Shield Advanced role trust fix (`f22488d`). CI-only: pylic `--allow-extra-safe-licenses`, `actions/cache@v5`. | Scheduler change is a **resource replacement** in every solution stack on next update (exec role is `AdministratorAccess`, no permission gap). CT 4.0 path falls back to the old hardcoded bucket name in non-CT orgs, so behavior unchanged. Rebase was conflict-free; all 4 patches still needed. |
 - The patched bugs are genuine upstream defects; `aws-samples` doesn't accept PRs, but filing GitHub
   **issues** could get them fixed upstream and shrink this fork's maintenance burden.
